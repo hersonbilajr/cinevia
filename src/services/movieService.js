@@ -111,6 +111,21 @@ async function request(path, params = {}) {
 const DEMO_DELAY = 220
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+/**
+ * Mapa id → nome de género. As listagens do TMDB trazem apenas `genre_ids`,
+ * pelo que é preciso este índice para mostrar os nomes nos cartões e nas
+ * etiquetas de filtro. É pedido uma única vez e reutilizado.
+ */
+let liveGenreMap = null
+
+async function ensureGenreMap() {
+  if (!isLiveMode) return demoGenreMap
+  if (liveGenreMap) return liveGenreMap
+  const data = await request('/genre/movie/list')
+  liveGenreMap = new Map((data.genres || []).map((genre) => [genre.id, genre.name]))
+  return liveGenreMap
+}
+
 /* -------------------------------------------------------------------------- */
 /* Normalização                                                               */
 /* -------------------------------------------------------------------------- */
@@ -239,6 +254,7 @@ export async function getGenres() {
       .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
   }
   const data = await request('/genre/movie/list')
+  liveGenreMap = new Map((data.genres || []).map((genre) => [genre.id, genre.name]))
   return (data.genres || []).sort((a, b) => a.name.localeCompare(b.name, 'pt'))
 }
 
@@ -249,7 +265,8 @@ export async function getTrending() {
     return applyFilters(demoMovies.map(normalizeDemo), { sort: 'popularity.desc' }).slice(0, 6)
   }
   const data = await request('/trending/movie/week')
-  return (data.results || []).map((movie) => normalizeLive(movie))
+  const genreMap = await ensureGenreMap()
+  return (data.results || []).map((movie) => normalizeLive(movie, genreMap))
 }
 
 /**
@@ -282,8 +299,9 @@ export async function getCategory(category = 'popular', page = 1) {
 
   const endpoint = CATEGORY_ENDPOINTS[category] || CATEGORY_ENDPOINTS.popular
   const data = await request(endpoint, { page: String(page), region: 'PT' })
+  const genreMap = await ensureGenreMap()
   return {
-    results: (data.results || []).map((movie) => normalizeLive(movie)),
+    results: (data.results || []).map((movie) => normalizeLive(movie, genreMap)),
     page: data.page || page,
     totalPages: Math.min(data.total_pages || 1, 500),
     totalResults: data.total_results || 0
@@ -309,7 +327,8 @@ export async function searchMovies(query, page = 1, filters = {}) {
     page: String(page),
     include_adult: 'false'
   })
-  const results = (data.results || []).map((movie) => normalizeLive(movie))
+  const genreMap = await ensureGenreMap()
+  const results = (data.results || []).map((movie) => normalizeLive(movie, genreMap))
   return {
     results: applyFilters(results, filters),
     page: data.page || page,
@@ -338,8 +357,9 @@ export async function discoverMovies({ genre, year, rating, sort, page = 1 } = {
   if (!sort || sort === 'vote_average.desc') params['vote_count.gte'] = '200'
 
   const data = await request('/discover/movie', params)
+  const genreMap = await ensureGenreMap()
   return {
-    results: (data.results || []).map((movie) => normalizeLive(movie)),
+    results: (data.results || []).map((movie) => normalizeLive(movie, genreMap)),
     page: data.page || page,
     totalPages: Math.min(data.total_pages || 1, 500),
     totalResults: data.total_results || 0
@@ -410,7 +430,8 @@ export async function getRelated(movie, limit = 6) {
   }
 
   const data = await request(`/movie/${movie.id}/recommendations`, { page: '1' })
-  return (data.results || []).slice(0, limit).map((item) => normalizeLive(item))
+  const genreMap = await ensureGenreMap()
+  return (data.results || []).slice(0, limit).map((item) => normalizeLive(item, genreMap))
 }
 
 export { demoGenreMap }
