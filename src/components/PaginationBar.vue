@@ -1,7 +1,6 @@
 <script setup>
 /**
  * Paginação numérica com janela deslizante e elipses.
- * A lista é navegável por teclado (botões nativos).
  */
 import { computed } from 'vue'
 
@@ -51,7 +50,7 @@ function go(page) {
       @click="go(page - 1)"
     >
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
-        <path d="m14 6-6 6 6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="m14 6-6 6 6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
 
@@ -79,7 +78,7 @@ function go(page) {
       @click="go(page + 1)"
     >
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
-        <path d="m10 6 6 6-6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="m10 6 6 6-6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
 
@@ -93,46 +92,35 @@ function go(page) {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 40px;
+  gap: 6px;
+  margin-top: 44px;
 }
 
 .pager__btn {
   display: grid;
   place-items: center;
-  min-width: 40px;
-  height: 40px;
-  padding-inline: 10px;
-  border-radius: 12px;
+  min-width: 34px;
+  height: 34px;
+  padding-inline: 8px;
   border: 1px solid var(--line);
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-soft);
-  font-family: var(--font-display);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  transition:
-    background 0.2s var(--ease),
-    border-color 0.2s var(--ease),
-    color 0.2s var(--ease),
-    transform 0.2s var(--ease);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
 }
 
 .pager__btn:hover:not(:disabled) {
-  background: var(--surface-3);
-  border-color: #3b4252;
-  color: var(--text);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 .pager__btn--active {
-  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
-  border-color: transparent;
-  color: #171204;
-  box-shadow: 0 10px 24px -14px rgba(240, 180, 41, 0.9);
-}
-
-.pager__btn--active:hover {
-  color: #171204;
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
 }
 
 .pager__btn:disabled {
@@ -141,23 +129,16 @@ function go(page) {
 }
 
 .pager__gap {
-  color: var(--muted);
-  padding-inline: 2px;
+  color: var(--dim);
 }
 
 .pager__status {
   width: 100%;
   text-align: center;
-  font-size: 0.78rem;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-@media (max-width: 420px) {
-  .pager__btn {
-    min-width: 36px;
-    height: 36px;
-    font-size: 0.82rem;
-  }
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-top: 8px;
 }
 </style>

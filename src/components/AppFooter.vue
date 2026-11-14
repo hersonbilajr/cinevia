@@ -22,7 +22,7 @@ const year = new Date().getFullYear()
           Fonte de dados:
           <strong>{{ isLiveMode ? 'TMDB (The Movie Database)' : 'catálogo local de demonstração' }}</strong>
         </p>
-        <p>{{ count }} {{ count === 1 ? 'filme guardado' : 'filmes guardados' }} nos favoritos</p>
+        <p>{{ count }} {{ count === 1 ? 'filme na lista' : 'filmes na lista' }}</p>
         <p class="footer__copy">© {{ year }} · Projecto académico, sem fins comerciais.</p>
       </div>
     </div>
@@ -31,9 +31,10 @@ const year = new Date().getFullYear()
 
 <style scoped>
 .footer {
-  margin-top: 60px;
+  margin-top: 50px;
+  padding-block: 40px 48px;
+  background: #0b0b0d;
   border-top: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, rgba(11, 13, 19, 0.4), rgba(7, 8, 12, 0.9));
 }
 
 .footer__inner {
@@ -41,25 +42,24 @@ const year = new Date().getFullYear()
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 26px;
-  padding-block: 38px 44px;
 }
 
 .footer__brand {
-  max-width: 380px;
+  max-width: 400px;
 }
 
 .footer__name {
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800;
   letter-spacing: 0.18em;
-  color: var(--gold);
+  color: var(--red);
 }
 
 .footer__text {
   margin-top: 8px;
-  font-size: 0.83rem;
-  color: var(--muted);
+  font-size: 0.82rem;
+  color: var(--dim);
   line-height: 1.6;
 }
 
@@ -67,19 +67,19 @@ const year = new Date().getFullYear()
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 0.78rem;
+  color: var(--dim);
   text-align: right;
 }
 
 .footer__meta strong {
-  color: var(--text-soft);
+  color: var(--muted);
   font-weight: 500;
 }
 
 .footer__copy {
   margin-top: 6px;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 @media (max-width: 640px) {

@@ -1,40 +1,44 @@
 <script setup>
 /**
- * Barra de navegação fixa: identidade, ligações principais, contador de
- * favoritos e indicação do modo de dados (TMDB ao vivo ou demonstração).
+ * Barra superior: identidade, navegação, contador de favoritos e indicação
+ * do modo de dados. Fica transparente sobre o destaque e ganha fundo sólido
+ * ao rolar a página.
  */
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFavorites } from '../composables/useFavorites'
 import { isLiveMode } from '../services/movieService'
 
 const route = useRoute()
 const { count } = useFavorites()
+const scrolled = ref(false)
 
 const links = [
-  { name: 'home', label: 'Explorar' },
-  { name: 'favorites', label: 'Favoritos' }
+  { name: 'home', label: 'Início' },
+  { name: 'favorites', label: 'A minha lista' }
 ]
 
 const isActive = (name) => route.name === name || (name === 'home' && route.name === 'movie')
 const showBadge = computed(() => count.value > 0)
+
+function onScroll() {
+  scrolled.value = window.scrollY > 20
+}
+
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+
+onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 </script>
 
 <template>
-  <header class="nav">
-    <div class="nav__inner container">
+  <header class="nav" :class="{ 'nav--solid': scrolled }">
+    <div class="nav__inner">
       <router-link to="/" class="brand" aria-label="CINEVIA — página inicial">
-        <span class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="7" width="24" height="18" rx="4" stroke="currentColor" stroke-width="1.8" />
-            <path d="M4 12.5h24M10.5 7v18m11-18v18" stroke="currentColor" stroke-width="1.4" opacity=".55" />
-            <circle cx="16" cy="16.4" r="2.6" fill="currentColor" />
-          </svg>
-        </span>
-        <span class="brand__text">
-          <span class="brand__name">CINEVIA</span>
-          <span class="brand__tag">explorador de filmes</span>
-        </span>
+        <span class="brand__mark" aria-hidden="true">C</span>
+        <span class="brand__name">CINEVIA</span>
       </router-link>
 
       <nav class="nav__links" aria-label="Navegação principal">
@@ -52,7 +56,7 @@ const showBadge = computed(() => count.value > 0)
 
       <span class="nav__mode" :class="isLiveMode ? 'nav__mode--live' : 'nav__mode--demo'">
         <span class="nav__dot" aria-hidden="true"></span>
-        <span>{{ isLiveMode ? 'TMDB' : 'Demo' }}</span>
+        {{ isLiveMode ? 'TMDB' : 'Demo' }}
       </span>
     </div>
   </header>
@@ -60,191 +64,153 @@ const showBadge = computed(() => count.value > 0)
 
 <style scoped>
 .nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  border-bottom: 1px solid transparent;
-  background: rgba(7, 8, 12, 0.72);
-  backdrop-filter: blur(18px) saturate(140%);
-  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.86) 10%, rgba(0, 0, 0, 0));
+  transition: background 0.35s var(--ease);
 }
 
-.nav::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 -1px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(240, 180, 41, 0.28), transparent);
+.nav--solid {
+  background: #0b0b0d;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .nav__inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  min-height: var(--nav-height);
+  gap: 22px;
+  height: var(--nav-height);
+  max-width: var(--container);
+  margin: 0 auto;
+  padding-inline: 4%;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
+  gap: 9px;
+  flex-shrink: 0;
 }
 
 .brand__mark {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  color: #1a1405;
-  background: linear-gradient(140deg, var(--gold-bright), var(--gold));
-  box-shadow: 0 8px 22px -12px rgba(240, 180, 41, 0.9);
-}
-
-.brand__mark svg {
-  width: 22px;
-  height: 22px;
-}
-
-.brand__text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.05;
+  width: 26px;
+  height: 26px;
+  border-radius: 2px;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
 
 .brand__name {
   font-family: var(--font-display);
-  font-size: 1.02rem;
-  font-weight: 700;
+  font-size: 1.32rem;
+  font-weight: 800;
   letter-spacing: 0.16em;
-}
-
-.brand__tag {
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
+  color: var(--red);
   text-transform: uppercase;
-  color: var(--muted);
 }
 
 .nav__links {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: auto;
+  gap: 20px;
+  margin-left: 12px;
 }
 
 .nav__link {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 15px;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-display);
+  gap: 6px;
   font-size: 0.88rem;
   font-weight: 500;
   color: var(--text-soft);
-  transition: background 0.22s var(--ease), color 0.22s var(--ease);
+  transition: color 0.2s var(--ease), opacity 0.2s var(--ease);
 }
 
 .nav__link:hover {
-  background: rgba(244, 242, 237, 0.07);
-  color: var(--text);
+  color: #fff;
 }
 
 .nav__link--active {
-  color: #17120a;
-  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  color: #fff;
+  font-weight: 700;
 }
 
 .nav__count {
   display: inline-grid;
   place-items: center;
-  min-width: 19px;
-  height: 19px;
+  min-width: 18px;
+  height: 18px;
   padding-inline: 5px;
-  border-radius: var(--radius-pill);
-  background: var(--coral);
+  border-radius: 3px;
+  background: var(--red);
   color: #fff;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
-}
-
-.nav__link--active .nav__count {
-  background: rgba(23, 18, 10, 0.82);
-  color: var(--gold-bright);
 }
 
 .nav__mode {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 2px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .nav__dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--muted);
+  background: currentColor;
 }
 
 .nav__mode--live {
-  color: var(--mint);
-  border-color: rgba(87, 214, 174, 0.4);
-  background: rgba(87, 214, 174, 0.08);
-}
-
-.nav__mode--live .nav__dot {
-  background: var(--mint);
-  box-shadow: 0 0 0 3px rgba(87, 214, 174, 0.18);
-  animation: pulse 2.4s infinite;
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
 }
 
 .nav__mode--demo {
-  color: var(--gold);
-  border-color: rgba(240, 180, 41, 0.32);
-  background: var(--gold-soft);
-}
-
-.nav__mode--demo .nav__dot {
-  background: var(--gold);
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
+  color: #ffb4b8;
+  border-color: rgba(229, 9, 20, 0.45);
 }
 
 @media (max-width: 620px) {
-  .brand__tag {
-    display: none;
+  .brand__name {
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
   }
 
-  .nav__mode span:last-child {
-    display: none;
+  .nav__inner {
+    gap: 14px;
+    padding-inline: 16px;
   }
 
-  .nav__mode {
-    padding: 8px;
+  .nav__links {
+    gap: 14px;
+    margin-left: 0;
   }
 
   .nav__link {
-    padding: 8px 12px;
     font-size: 0.82rem;
+  }
+
+  .nav__mode {
+    padding: 3px 7px;
+    font-size: 0.58rem;
   }
 }
 </style>

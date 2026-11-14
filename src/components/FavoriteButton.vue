@@ -1,7 +1,7 @@
 <script setup>
 /**
- * Botão de favorito (coração). Lê e escreve no estado partilhado
- * useFavorites (localStorage), pelo que funciona em qualquer ecrã.
+ * Botão de favorito. Escreve no estado partilhado useFavorites (localStorage),
+ * pelo que funciona em qualquer ecrã.
  */
 import { computed } from 'vue'
 import { useFavorites } from '../composables/useFavorites'
@@ -13,10 +13,6 @@ const props = defineProps({
 
 const { isFavorite, toggle } = useFavorites()
 const active = computed(() => isFavorite(props.movie.id))
-
-function onClick() {
-  toggle(props.movie)
-}
 </script>
 
 <template>
@@ -25,19 +21,23 @@ function onClick() {
     :class="{ 'fav--active': active, 'fav--labelled': label }"
     type="button"
     :aria-pressed="active"
-    :aria-label="active ? `Remover ${movie.title} dos favoritos` : `Adicionar ${movie.title} aos favoritos`"
-    :title="active ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
-    @click.stop.prevent="onClick"
+    :aria-label="active ? `Remover ${movie.title} da minha lista` : `Adicionar ${movie.title} à minha lista`"
+    :title="active ? 'Remover da minha lista' : 'Adicionar à minha lista'"
+    @click.stop.prevent="toggle(movie)"
   >
-    <svg viewBox="0 0 24 24" aria-hidden="true" :fill="active ? 'currentColor' : 'none'">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path v-if="!active" d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
       <path
-        d="M12 20.2s-7.4-4.5-7.4-9.4A4.3 4.3 0 0 1 12 7.9a4.3 4.3 0 0 1 7.4 2.9c0 4.9-7.4 9.4-7.4 9.4Z"
+        v-else
+        d="m5 12.5 4.5 4.5L19 7"
+        fill="none"
         stroke="currentColor"
-        stroke-width="1.7"
+        stroke-width="2"
+        stroke-linecap="round"
         stroke-linejoin="round"
       />
     </svg>
-    <span v-if="label">{{ active ? 'Nos favoritos' : 'Favoritos' }}</span>
+    <span v-if="label">{{ active ? 'Na minha lista' : 'Minha lista' }}</span>
   </button>
 </template>
 
@@ -47,55 +47,60 @@ function onClick() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   color: #fff;
-  background: rgba(8, 9, 13, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   transition:
-    background 0.22s var(--ease),
-    color 0.22s var(--ease),
-    border-color 0.22s var(--ease),
-    transform 0.22s var(--ease);
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
 
 .fav svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .fav:hover {
-  transform: scale(1.08);
-  border-color: rgba(255, 92, 116, 0.6);
-  color: var(--coral);
+  background: rgba(0, 0, 0, 0.85);
+  border-color: #fff;
+  transform: scale(1.06);
 }
 
 .fav--active {
-  color: var(--coral);
-  border-color: rgba(255, 92, 116, 0.55);
-  background: rgba(255, 92, 116, 0.16);
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  color: #000;
 }
 
 .fav--labelled {
   width: auto;
   height: auto;
-  padding: 11px 20px;
-  border-radius: var(--radius-pill);
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  background: rgba(109, 109, 110, 0.6);
+  border-color: transparent;
   font-family: var(--font-display);
-  font-size: 0.9rem;
-  font-weight: 600;
-  background: rgba(244, 242, 237, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.fav--labelled svg {
+  width: 18px;
+  height: 18px;
 }
 
 .fav--labelled:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 92, 116, 0.14);
+  background: rgba(109, 109, 110, 0.42);
+  transform: none;
 }
 
 .fav--labelled.fav--active {
-  background: rgba(255, 92, 116, 0.16);
+  background: rgba(109, 109, 110, 0.6);
+  border-color: transparent;
+  color: #fff;
 }
 </style>

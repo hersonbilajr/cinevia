@@ -10,13 +10,11 @@ const router = useRouter()
 <template>
   <div class="notfound container">
     <span class="notfound__code">404</span>
-    <h1 class="notfound__title">Esta sessão não existe</h1>
+    <h1 class="notfound__title">Não encontrámos esta página</h1>
     <p class="notfound__text">
-      A página que procuras não foi encontrada. Volta ao catálogo para continuar a explorar filmes.
+      O endereço que tentaste abrir não existe. Volta ao catálogo para continuares a explorar filmes.
     </p>
-    <button class="btn btn--primary" type="button" @click="router.push('/')">
-      Voltar ao início
-    </button>
+    <button class="btn btn--primary" type="button" @click="router.push('/')">Voltar ao início</button>
   </div>
 </template>
 
@@ -25,33 +23,33 @@ const router = useRouter()
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
-  padding-block: 100px;
-  min-height: 60vh;
+  gap: 12px;
+  padding-top: calc(var(--nav-height) + 90px);
+  padding-bottom: 110px;
+  min-height: 70vh;
 }
 
 .notfound__code {
   font-family: var(--font-display);
-  font-size: clamp(3.4rem, 10vw, 6rem);
-  font-weight: 700;
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 800;
   line-height: 1;
-  color: transparent;
-  background: linear-gradient(135deg, var(--gold-bright), rgba(240, 180, 41, 0.25));
-  -webkit-background-clip: text;
-  background-clip: text;
+  letter-spacing: -0.05em;
+  color: var(--red);
 }
 
 .notfound__title {
-  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+  font-weight: 700;
 }
 
 .notfound__text {
-  max-width: 48ch;
+  max-width: 46ch;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .notfound .btn {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 </style>

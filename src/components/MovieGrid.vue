@@ -1,8 +1,7 @@
 <script setup>
 /**
- * Grelha de resultados responsiva.
- * Trata os três estados da interface: carregamento (esqueletos), erro e
- * ausência de resultados — para além da lista de cartões.
+ * Grelha de resultados (usada na pesquisa, nos filtros e nos favoritos),
+ * com esqueletos de carregamento, erro e ausência de resultados.
  */
 import MovieCard from './MovieCard.vue'
 import StateMessage from './StateMessage.vue'
@@ -36,7 +35,6 @@ defineEmits(['retry', 'empty-action'])
       <div v-for="n in skeletonCount" :key="n" class="skeleton">
         <div class="skeleton__poster"></div>
         <div class="skeleton__line"></div>
-        <div class="skeleton__line skeleton__line--short"></div>
       </div>
     </div>
 
@@ -57,40 +55,34 @@ defineEmits(['retry', 'empty-action'])
 <style scoped>
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
-  gap: 26px 20px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 24px 10px;
 }
 
 .skeleton {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .skeleton__poster {
   aspect-ratio: 2 / 3;
   border-radius: var(--radius);
-  border: 1px solid var(--line-soft);
 }
 
 .skeleton__line {
-  height: 12px;
-  border-radius: 6px;
-  width: 88%;
-}
-
-.skeleton__line--short {
-  width: 52%;
   height: 10px;
+  width: 58%;
+  border-radius: 3px;
 }
 
 .skeleton__poster,
 .skeleton__line {
-  background-color: var(--surface-2);
+  background-color: #151517;
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.055) 45%,
+    rgba(255, 255, 255, 0.05) 45%,
     rgba(255, 255, 255, 0) 90%
   );
   background-size: 420px 100%;
@@ -100,8 +92,8 @@ defineEmits(['retry', 'empty-action'])
 
 @media (max-width: 560px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 20px 14px;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 18px 8px;
   }
 }
 </style>

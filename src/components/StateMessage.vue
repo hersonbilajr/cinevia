@@ -14,20 +14,20 @@ defineEmits(['action'])
 
 <template>
   <div class="state" :class="`state--${variant}`" role="status">
-    <div class="state__icon" aria-hidden="true">
+    <span class="state__badge" aria-hidden="true">
       <svg v-if="variant === 'error'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path
           d="M12 8.5v4.2m0 3.1h.01M10.6 4.3 3.4 17a1.6 1.6 0 0 0 1.4 2.4h14.4a1.6 1.6 0 0 0 1.4-2.4L13.4 4.3a1.6 1.6 0 0 0-2.8 0Z"
-          stroke-width="1.6"
+          stroke-width="1.7"
           stroke-linecap="round"
           stroke-linejoin="round"
         />
       </svg>
       <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <circle cx="11" cy="11" r="6.4" stroke-width="1.6" />
-        <path d="m16 16 4.2 4.2" stroke-width="1.6" stroke-linecap="round" />
+        <circle cx="11" cy="11" r="6.4" stroke-width="1.7" />
+        <path d="m16 16 4.2 4.2" stroke-width="1.7" stroke-linecap="round" />
       </svg>
-    </div>
+    </span>
     <h3 class="state__title">{{ title }}</h3>
     <p v-if="text" class="state__text">{{ text }}</p>
     <button v-if="actionLabel" class="btn btn--ghost btn--small" type="button" @click="$emit('action')">
@@ -45,46 +45,45 @@ defineEmits(['action'])
   gap: 10px;
   padding: 64px 24px;
   text-align: center;
-  border: 1px dashed var(--line);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(22, 25, 35, 0.55), rgba(16, 18, 25, 0.25));
-  animation: fade-up 0.45s var(--ease) both;
+  background: #101013;
+  border: 1px solid var(--line-soft);
+  animation: fade-in 0.4s var(--ease) both;
 }
 
-.state__icon {
+.state__badge {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
   border-radius: 50%;
-  margin-bottom: 4px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  color: var(--gold);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-soft);
 }
 
-.state__icon svg {
-  width: 24px;
-  height: 24px;
+.state__badge svg {
+  width: 22px;
+  height: 22px;
 }
 
-.state--error .state__icon {
-  color: var(--coral);
-  background: rgba(255, 92, 116, 0.1);
-  border-color: rgba(255, 92, 116, 0.35);
+.state--error .state__badge {
+  background: var(--red-soft);
+  color: #ff6b73;
 }
 
 .state__title {
   font-size: 1.05rem;
+  font-weight: 700;
 }
 
 .state__text {
-  max-width: 46ch;
+  max-width: 48ch;
   font-size: 0.9rem;
   color: var(--muted);
 }
 
 .state .btn {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 </style>

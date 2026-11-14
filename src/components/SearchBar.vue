@@ -1,17 +1,15 @@
 <script setup>
 /**
- * Barra de pesquisa por título.
- * O componente apenas emite o texto; a página faz o "debounce" da pesquisa.
+ * Barra de pesquisa por título. Emite o texto; a página faz o debounce.
  */
 import { ref } from 'vue'
 
-const props = defineProps({
+defineProps({
   modelValue: { type: String, default: '' },
-  placeholder: { type: String, default: 'Pesquisar por título…' }
+  placeholder: { type: String, default: 'Pesquisar filmes…' }
 })
 
 const emit = defineEmits(['update:modelValue'])
-
 const input = ref(null)
 
 function onInput(event) {
@@ -30,8 +28,8 @@ defineExpose({ focus: () => input.value?.focus() })
   <form class="search" role="search" @submit.prevent>
     <span class="search__icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <circle cx="11" cy="11" r="6.6" stroke-width="1.7" />
-        <path d="m16.2 16.2 4 4" stroke-width="1.7" stroke-linecap="round" />
+        <circle cx="11" cy="11" r="6.4" stroke-width="1.8" />
+        <path d="m16 16 4.2 4.2" stroke-width="1.8" stroke-linecap="round" />
       </svg>
     </span>
     <label class="visually-hidden" for="search-input">Pesquisar filmes por título</label>
@@ -53,7 +51,7 @@ defineExpose({ focus: () => input.value?.focus() })
       @click="clear"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="m7 7 10 10M17 7 7 17" stroke-width="1.8" stroke-linecap="round" />
+        <path d="m7 7 10 10M17 7 7 17" stroke-width="2" stroke-linecap="round" />
       </svg>
     </button>
     <kbd v-else class="search__hint" aria-hidden="true">/</kbd>
@@ -70,35 +68,32 @@ defineExpose({ focus: () => input.value?.focus() })
 
 .search__icon {
   position: absolute;
-  left: 16px;
+  left: 13px;
   display: grid;
   place-items: center;
-  color: var(--muted);
+  color: var(--dim);
   pointer-events: none;
-  transition: color 0.22s var(--ease);
+  transition: color 0.2s var(--ease);
 }
 
 .search__icon svg {
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
 }
 
 .search__input {
   width: 100%;
-  padding: 14px 48px 14px 46px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  color: var(--text);
-  font-size: 0.95rem;
-  transition:
-    border-color 0.25s var(--ease),
-    background 0.25s var(--ease),
-    box-shadow 0.25s var(--ease);
+  padding: 10px 42px 10px 38px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.88rem;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
 }
 
 .search__input::placeholder {
-  color: #767d8c;
+  color: var(--dim);
 }
 
 .search__input::-webkit-search-cancel-button {
@@ -107,59 +102,50 @@ defineExpose({ focus: () => input.value?.focus() })
 
 .search__input:focus {
   outline: none;
-  border-color: rgba(240, 180, 41, 0.6);
-  background: var(--surface-2);
-  box-shadow: 0 0 0 4px rgba(240, 180, 41, 0.1);
+  border-color: var(--red);
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .search:focus-within .search__icon {
-  color: var(--gold);
+  color: #fff;
 }
 
 .search__clear {
   position: absolute;
-  right: 12px;
+  right: 8px;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   color: var(--muted);
-  transition: background 0.2s var(--ease), color 0.2s var(--ease);
 }
 
 .search__clear svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .search__clear:hover {
-  background: var(--surface-3);
-  color: var(--text);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .search__hint {
   position: absolute;
-  right: 16px;
+  right: 10px;
   display: grid;
   place-items: center;
-  min-width: 22px;
-  height: 22px;
-  padding-inline: 5px;
-  border-radius: 6px;
+  min-width: 18px;
+  height: 18px;
   border: 1px solid var(--line);
-  background: var(--surface-2);
-  color: var(--muted);
+  border-radius: 2px;
+  color: var(--dim);
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.66rem;
 }
 
 @media (max-width: 520px) {
-  .search__input {
-    padding: 12px 44px 12px 42px;
-    font-size: 0.9rem;
-  }
-
   .search__hint {
     display: none;
   }

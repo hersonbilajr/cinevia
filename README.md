@@ -25,7 +25,7 @@ pesquisar, filtrar e consultar informação detalhada sobre filmes, com dados da
 | Detalhes do filme | Página própria em `/filme/:id` com sinopse, géneros, data, classificação, duração, realização, elenco e mais (`MovieView`, `MovieDetails`) |
 
 ### Funcionalidades adicionais
-- **Categorias**: populares, melhores classificações, em estreia e em exibição.
+- **Filas horizontais por categoria** (populares, melhores classificações, em estreia, em exibição), com setas de navegação e pré-visualização ao passar o rato — quando há pesquisa ou filtros activos a página passa a mostrar uma grelha de resultados.
 - **Secção de destaque** (*hero*) com o filme mais popular do momento.
 - **Favoritos** persistidos em `localStorage`, com contador na barra de navegação e página dedicada
   (`/favoritos`), incluindo pesquisa dentro da lista e remoção individual ou total.
@@ -74,6 +74,7 @@ cinevia/
 │   │   ├── MovieFilters.vue
 │   │   ├── MovieGrid.vue
 │   │   ├── MoviePoster.vue
+│   │   ├── MovieRow.vue
 │   │   ├── Navbar.vue
 │   │   ├── PaginationBar.vue
 │   │   ├── SearchBar.vue

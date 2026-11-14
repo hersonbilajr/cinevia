@@ -1,14 +1,17 @@
 <script setup>
 /**
- * Página inicial: destaque, pesquisa, filtros combinados, categorias,
- * grelha de resultados e paginação.
+ * Página inicial: destaque em grande plano, filas horizontais por categoria
+ * (estilo plataforma de streaming) e, quando há pesquisa ou filtros activos,
+ * uma grelha de resultados com paginação.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import HeroBanner from '../components/HeroBanner.vue'
 import SearchBar from '../components/SearchBar.vue'
 import MovieFilters from '../components/MovieFilters.vue'
 import MovieGrid from '../components/MovieGrid.vue'
+import MovieRow from '../components/MovieRow.vue'
 import PaginationBar from '../components/PaginationBar.vue'
+import StateMessage from '../components/StateMessage.vue'
 import {
   discoverMovies,
   getCategory,
@@ -18,11 +21,11 @@ import {
   searchMovies
 } from '../services/movieService'
 
-const CATEGORIES = [
-  { value: 'popular', label: 'Populares' },
-  { value: 'top_rated', label: 'Melhores classificações' },
-  { value: 'upcoming', label: 'Em estreia' },
-  { value: 'now_playing', label: 'Em exibição' }
+const SECTIONS = [
+  { key: 'popular', title: 'Populares agora' },
+  { key: 'top_rated', title: 'Melhores classificações' },
+  { key: 'upcoming', title: 'Em estreia' },
+  { key: 'now_playing', title: 'Em exibição' }
 ]
 
 const DEFAULT_FILTERS = { genre: '', year: '', rating: 0, sort: 'popularity.desc' }
@@ -31,8 +34,12 @@ const featured = ref(null)
 const heroLoading = ref(true)
 
 const genres = ref([])
+const rows = ref([])
+const rowsLoading = ref(true)
+const rowsError = ref('')
+
 const movies = ref([])
-const loading = ref(true)
+const loading = ref(false)
 const error = ref('')
 const page = ref(1)
 const totalPages = ref(1)
@@ -40,9 +47,7 @@ const totalResults = ref(0)
 
 const query = ref('')
 const searchTerm = ref('')
-const category = ref('popular')
 const filters = ref({ ...DEFAULT_FILTERS })
-
 const searchBar = ref(null)
 let debounceId = null
 
@@ -50,7 +55,10 @@ const hasActiveFilters = computed(
   () => Boolean(filters.value.genre) || Boolean(filters.value.year) || Number(filters.value.rating) > 0
 )
 
-const usesDiscover = computed(() => hasActiveFilters.value || filters.value.sort !== 'popularity.desc')
+/** Modo "filas" (navegação) vs. modo "resultados" (pesquisa ou filtros). */
+const browsing = computed(
+  () => !searchTerm.value && !hasActiveFilters.value && filters.value.sort === 'popularity.desc'
+)
 
 const activeFilterChips = computed(() => {
   const chips = []
@@ -58,26 +66,23 @@ const activeFilterChips = computed(() => {
     const genre = genres.value.find((item) => String(item.id) === String(filters.value.genre))
     chips.push({ key: 'genre', label: genre ? genre.name : 'Género' })
   }
-  if (filters.value.year) chips.push({ key: 'year', label: `Ano ${filters.value.year}` })
+  if (filters.value.year) chips.push({ key: 'year', label: filters.value.year })
   if (Number(filters.value.rating) > 0) {
-    chips.push({ key: 'rating', label: `Nota ≥ ${String(filters.value.rating).replace('.', ',')}` })
+    chips.push({ key: 'rating', label: `Nota ${String(filters.value.rating).replace('.', ',')}+` })
   }
   return chips
 })
 
 const resultsTitle = computed(() => {
   if (searchTerm.value) return `Resultados para “${searchTerm.value}”`
-  if (usesDiscover.value) return 'Resultados filtrados'
-  return CATEGORIES.find((item) => item.value === category.value)?.label || 'Filmes'
+  return 'Resultados filtrados'
 })
 
 const resultsHint = computed(() => {
   if (searchTerm.value && hasActiveFilters.value) {
     return `${movies.value.length} filmes nesta página · filtros aplicados aos resultados da pesquisa`
   }
-  if (totalResults.value > 0) {
-    return `${totalResults.value.toLocaleString('pt-PT')} filmes encontrados`
-  }
+  if (totalResults.value > 0) return `${totalResults.value.toLocaleString('pt-PT')} filmes encontrados`
   return ''
 })
 
@@ -95,18 +100,32 @@ async function loadHero() {
   }
 }
 
-async function loadMovies() {
+async function loadRows() {
+  rowsLoading.value = true
+  rowsError.value = ''
+  try {
+    const lists = await Promise.all(
+      SECTIONS.map(async (section) => {
+        const response = await getCategory(section.key, 1)
+        return { ...section, movies: response.results || [] }
+      })
+    )
+    rows.value = lists.filter((row) => row.movies.length)
+  } catch (err) {
+    rowsError.value = err?.message || 'Não foi possível carregar as categorias.'
+    rows.value = []
+  } finally {
+    rowsLoading.value = false
+  }
+}
+
+async function loadResults() {
   loading.value = true
   error.value = ''
   try {
-    let response
-    if (searchTerm.value) {
-      response = await searchMovies(searchTerm.value, page.value, filters.value)
-    } else if (usesDiscover.value) {
-      response = await discoverMovies({ ...filters.value, page: page.value })
-    } else {
-      response = await getCategory(category.value, page.value)
-    }
+    const response = searchTerm.value
+      ? await searchMovies(searchTerm.value, page.value, filters.value)
+      : await discoverMovies({ ...filters.value, page: page.value })
     movies.value = response.results || []
     totalPages.value = response.totalPages || 1
     totalResults.value = response.totalResults || movies.value.length
@@ -121,30 +140,23 @@ async function loadMovies() {
 
 function applyChange() {
   page.value = 1
-  loadMovies()
+  if (browsing.value) {
+    movies.value = []
+    if (!rows.value.length) loadRows()
+  } else {
+    loadResults()
+  }
 }
 
 function changePage(next) {
   page.value = next
-  loadMovies()
+  loadResults()
 }
 
 function resetFilters() {
   filters.value = { ...DEFAULT_FILTERS }
-  if (searchTerm.value || query.value) {
-    query.value = ''
-    searchTerm.value = ''
-  }
-}
-
-/**
- * Escolher uma categoria limpa a pesquisa e os filtros: as categorias são um
- * ponto de partida de navegação, não um filtro adicional. Assim o clique tem
- * sempre efeito visível nos resultados.
- */
-function selectCategory(value) {
-  category.value = value
-  resetFilters()
+  if (query.value) query.value = ''
+  if (searchTerm.value) searchTerm.value = ''
 }
 
 function removeFilter(key) {
@@ -162,10 +174,7 @@ watch(query, (value) => {
   }, 420)
 })
 
-// Um único observador (lista de fontes) para que alterações simultâneas — por
-// exemplo escolher uma categoria, que limpa a pesquisa e os filtros — resultem
-// numa só chamada à API.
-watch([searchTerm, filters, category], applyChange, { deep: true })
+watch([searchTerm, filters], applyChange, { deep: true })
 
 function onKeydown(event) {
   const tag = document.activeElement?.tagName
@@ -179,7 +188,7 @@ function onKeydown(event) {
 onMounted(async () => {
   window.addEventListener('keydown', onKeydown)
   loadHero()
-  loadMovies()
+  loadRows()
   try {
     genres.value = await getGenres()
   } catch {
@@ -197,82 +206,75 @@ onBeforeUnmount(() => {
   <div class="home">
     <HeroBanner :movie="featured" :loading="heroLoading" />
 
-    <section class="toolbar section container">
-      <div class="toolbar__head">
-        <div>
-          <span class="section__eyebrow">Catálogo</span>
-          <h2 class="toolbar__title">O que vais ver hoje?</h2>
-        </div>
-        <div class="toolbar__search">
-          <SearchBar ref="searchBar" v-model="query" />
-        </div>
+    <section class="controls container" aria-label="Pesquisa e filtros">
+      <div class="controls__search">
+        <SearchBar ref="searchBar" v-model="query" />
       </div>
+      <MovieFilters v-model="filters" :genres="genres" @reset="resetFilters" />
 
       <p v-if="!isLiveMode" class="notice">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" stroke-width="1.6" />
-          <path d="M12 11v5.4M12 7.9h.01" stroke-width="1.8" stroke-linecap="round" />
-        </svg>
+        <span class="notice__dot" aria-hidden="true"></span>
         <span>
-          <strong>Modo demonstração.</strong> Estás a explorar um catálogo local de filmes. Define
-          <code>VITE_TMDB_TOKEN</code> no ficheiro <code>.env</code> para usar os dados reais do TMDB.
+          Catálogo local de demonstração. Define <code>VITE_TMDB_TOKEN</code> no ficheiro
+          <code>.env</code> para usar os dados reais do TMDB.
         </span>
       </p>
-
-      <nav class="tabs" aria-label="Categorias de filmes">
-        <button
-          v-for="item in CATEGORIES"
-          :key="item.value"
-          class="tabs__btn"
-          :class="{ 'tabs__btn--active': category === item.value && !searchTerm && !usesDiscover }"
-          type="button"
-          @click="selectCategory(item.value)"
-        >
-          {{ item.label }}
-        </button>
-      </nav>
-
-      <MovieFilters
-        v-model="filters"
-        :genres="genres"
-        :disabled="loading"
-        @reset="resetFilters"
-      />
     </section>
 
-    <section class="results container">
-      <div class="results__head">
+    <section v-if="browsing" class="rows container">
+      <StateMessage
+        v-if="rowsError"
+        variant="error"
+        title="Não foi possível carregar as categorias"
+        :text="rowsError"
+        action-label="Tentar novamente"
+        @action="loadRows"
+      />
+      <template v-else>
+        <MovieRow
+          v-for="row in rows"
+          :key="row.key"
+          :title="row.title"
+          :movies="row.movies"
+          :loading="rowsLoading"
+        />
+        <div v-if="rowsLoading" class="rows__loading">
+          <MovieRow title="Populares agora" :movies="[]" loading />
+        </div>
+      </template>
+    </section>
+
+    <section v-else class="results container" aria-live="polite">
+      <header class="results__head">
         <div>
           <h2 class="results__title">{{ resultsTitle }}</h2>
           <p v-if="resultsHint" class="results__hint">{{ resultsHint }}</p>
         </div>
-
         <div v-if="activeFilterChips.length" class="results__chips">
-          <span class="chip chip--gold results__chip-label">Filtros ativos</span>
           <button
             v-for="chip in activeFilterChips"
             :key="chip.key"
-            class="chip results__chip"
+            class="chip"
             type="button"
             :aria-label="`Remover filtro ${chip.label}`"
             @click="removeFilter(chip.key)"
           >
             {{ chip.label }}
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor">
-              <path d="m7 7 10 10M17 7 7 17" stroke-width="2" stroke-linecap="round" />
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor">
+              <path d="m7 7 10 10M17 7 7 17" stroke-width="2.2" stroke-linecap="round" />
             </svg>
           </button>
         </div>
-      </div>
+      </header>
 
       <MovieGrid
         :movies="movies"
         :loading="loading"
         :error="error"
         empty-title="Nenhum filme encontrado"
-        empty-text="Não encontrámos títulos com estes critérios. Experimenta outro termo ou limpa os filtros."
+        empty-text="Não existem títulos com estes critérios. Experimenta outro termo ou limpa os filtros."
         :empty-action="hasActiveFilters || query ? 'Limpar pesquisa e filtros' : ''"
-        @retry="loadMovies"
+        @retry="loadResults"
         @empty-action="resetFilters"
       />
 
@@ -288,100 +290,60 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.home {
-  padding-bottom: 20px;
-}
-
-.toolbar {
-  padding-top: 44px;
-}
-
-.toolbar__head {
+.controls {
+  position: relative;
+  z-index: 3;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 26px;
-  flex-wrap: wrap;
-  margin-bottom: 22px;
+  flex-direction: column;
+  gap: 14px;
+  padding-block: 18px 6px;
 }
 
-.toolbar__title {
-  font-size: clamp(1.5rem, 2.6vw, 2rem);
-}
-
-.toolbar__search {
-  flex: 1;
-  min-width: 260px;
-  max-width: 460px;
+.controls__search {
+  max-width: 420px;
 }
 
 .notice {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  margin-bottom: 18px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(240, 180, 41, 0.28);
-  background: var(--gold-soft);
-  color: var(--text-soft);
-  font-size: 0.83rem;
-  line-height: 1.55;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid var(--red);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
-.notice svg {
-  color: var(--gold);
+.notice__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .notice code {
   font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   padding: 1px 5px;
-  border-radius: 5px;
-  background: rgba(7, 8, 12, 0.55);
-  color: var(--gold-bright);
-}
-
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.tabs__btn {
-  padding: 9px 18px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.6);
   color: var(--text-soft);
-  font-family: var(--font-display);
-  font-size: 0.83rem;
-  font-weight: 500;
-  transition:
-    background 0.22s var(--ease),
-    color 0.22s var(--ease),
-    border-color 0.22s var(--ease),
-    transform 0.22s var(--ease);
 }
 
-.tabs__btn:hover {
-  transform: translateY(-1px);
-  border-color: #3a4150;
-  color: var(--text);
+.rows {
+  padding-block: 26px 10px;
 }
 
-.tabs__btn--active {
-  background: rgba(244, 242, 237, 0.1);
-  border-color: rgba(244, 242, 237, 0.35);
-  color: var(--text);
-  box-shadow: inset 0 0 0 1px rgba(244, 242, 237, 0.08);
+.rows__loading {
+  margin-top: 6px;
 }
 
 .results {
-  padding-top: 38px;
+  padding-block: 30px 10px;
 }
 
 .results__head {
@@ -389,51 +351,45 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .results__title {
-  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-weight: 700;
 }
 
 .results__hint {
   margin-top: 5px;
-  font-size: 0.82rem;
-  color: var(--muted);
+  font-size: 0.8rem;
+  color: var(--dim);
 }
 
 .results__chips {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
-.results__chip-label {
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-size: 0.68rem;
-}
-
-.results__chip {
+.results__chips .chip {
   cursor: pointer;
-  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.results__chip:hover {
-  border-color: var(--gold);
-  color: var(--gold-bright);
+.results__chips .chip:hover {
+  border-color: var(--red);
+  color: #fff;
 }
 
 @media (max-width: 720px) {
-  .toolbar {
-    padding-top: 30px;
+  .controls__search {
+    max-width: none;
   }
 
-  .toolbar__search {
-    max-width: none;
+  .notice span:last-child {
+    font-size: 0.74rem;
   }
 }
 </style>
