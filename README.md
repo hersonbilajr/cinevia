@@ -7,6 +7,10 @@ pesquisar, filtrar e consultar informação detalhada sobre filmes, com dados da
 > Trabalho individual de reposição · **Programação Web II — LECC31** · 2.º semestre de 2026
 > Instituto Superior de Transportes e Comunicações (ISUTC) · Docente: Ivan Ruby
 
+**Repositório:** <https://github.com/hersonbilajr/cinevia> ·
+**Aplicação publicada:** <https://hersonbilajr.github.io/cinevia/> ·
+**Texto de uma página:** [docs/CINEVIA-Relatorio-PWEBII-LECC31.pdf](docs/CINEVIA-Relatorio-PWEBII-LECC31.pdf)
+
 ---
 
 ## 1. Funcionalidades
