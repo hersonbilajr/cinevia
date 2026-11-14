@@ -38,7 +38,7 @@ pesquisar, filtrar e consultar informação detalhada sobre filmes, com dados da
 - **Acessibilidade básica**: navegação por teclado, atalho `/` para a pesquisa, `aria-label`/`aria-live`
   nos estados, ligação «saltar para o conteúdo» e respeito por `prefers-reduced-motion`.
 - **Design responsivo** para computador, tablet e telemóvel, com tema escuro e identidade própria
-  (ouro sobre tinta, tipografia Sora/Inter).
+  (preto profundo e vermelho de acento, tipografia Inter), inspirado nas plataformas de streaming.
 
 ---
 
@@ -142,7 +142,7 @@ uma credencial do TMDB:
 | Situação | Modo | O que acontece |
 |---|---|---|
 | Existe `VITE_TMDB_TOKEN` (ou `VITE_TMDB_API_KEY`) no `.env` | **TMDB (ao vivo)** | Todos os dados vêm da API oficial; o indicador da barra superior fica verde com «TMDB» |
-| Não existe chave | **Demonstração** | É usado o catálogo local `src/data/demoMovies.js` (37 filmes com metadados reais); o indicador fica dourado com «Demo» e a página inicial mostra um aviso |
+| Não existe chave | **Demonstração** | É usado o catálogo local `src/data/demoMovies.js` (37 filmes com metadados reais); o indicador fica vermelho com «Demo» e a página inicial mostra um aviso |
 
 O modo demonstração existe para que o projecto possa ser **aberto e avaliado de imediato**, sem
 depender de uma chave privada ou de ligação à Internet. Todos os ecrãs, filtros, paginação e
